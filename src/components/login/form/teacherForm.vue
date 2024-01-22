@@ -2,7 +2,7 @@
   <div>
       <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
           <el-form-item>
-            <span class="login_body_button" @click="pressButton" > 
+            <span class="login_body_button" @click="pressButton"> 
               <i :class="buttonClass" :style="{color:isColor}"></i>
               <span style="font-size:15px">记住密码</span>
             </span>

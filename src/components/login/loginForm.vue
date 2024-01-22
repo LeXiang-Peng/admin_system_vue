@@ -61,8 +61,9 @@ export default{
     },
     methods:{
       changeForm(event){
+        if(this.$refs.children.ruleForm.isRemenber){this.$refs.children.pressButton();};
         this.$refs.children.captchaUrl = '';
-        this.$refs.children.$refs.ruleForm.resetFields();
+        this.$refs.children.resetForm("ruleForm");
         let id = event.currentTarget.id;
         let names=['adminForm','teacherForm','studentForm'];
         this.isActive=[false,false,false];
