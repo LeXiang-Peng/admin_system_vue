@@ -119,11 +119,16 @@ export default{
         password:[{validator: validatePass, trigger: 'blur'}],
         captcha: [{validator: validateCaptcha, trigger: 'blur'}],
       },
-      captchaUrl: '',
       isPost:false,
       isTurned:false,
     }
-   },methods: {
+   },
+   props:{
+      captchaUrl:{
+        type: String
+     },
+   },
+   methods: {
     submitForm(formName) {
       if(!this.isTurned){
         this.isTurned=true;

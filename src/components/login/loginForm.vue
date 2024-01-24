@@ -6,7 +6,7 @@
       <span id="2" :class="{hold:isActive[1]}"  @click="changeForm($event)">教师</span>
     </div>
     <keep-alive>
-      <component :is="componentName" ref="children"></component>
+      <component :is="componentName" ref="children" :captchaUrl="captchaUrl"></component>
     </keep-alive>
   </div>
 </template>
@@ -61,23 +61,20 @@ export default{
     },
     methods:{
       changeForm(event){
-        if(this.$refs.children.ruleForm.isRemenber){this.$refs.children.pressButton();};
-        this.$refs.children.captchaUrl = '';
-        this.$refs.children.resetForm("ruleForm");
         let id = event.currentTarget.id;
-        let names=['adminForm','teacherForm','studentForm'];
-        this.isActive=[false,false,false];
-        this.isActive[id - 1]=true;
-        this.componentName=names[id - 1];
-        setTimeout(()=>{
-        this.$refs.children.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
-      },50)
+        if(!this.isActive[id-1]){
+          if (this.$refs.children.ruleForm.isRemenber) { this.$refs.children.pressButton(); };
+          this.$refs.children.resetForm("ruleForm");
+          this.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
+          let names = ['adminForm', 'teacherForm', 'studentForm'];
+          this.isActive = [false, false, false];
+          this.isActive[id - 1] = true;
+          this.componentName = names[id - 1];
+        }
       }
-    },
+    }, 
     created(){
-      setTimeout(()=>{
-        this.$refs.children.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
-      },50)
+      this.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
     }
 }
 </script>
