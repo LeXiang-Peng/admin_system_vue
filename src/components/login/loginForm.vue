@@ -65,7 +65,7 @@ export default{
         if(!this.isActive[id-1]){
           if (this.$refs.children.ruleForm.isRemenber) { this.$refs.children.pressButton(); };
           this.$refs.children.resetForm("ruleForm");
-          this.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
+          this.captchaUrl = 'http://localhost:9090/common/captcha?time=' + new Date().getTime();
           let names = ['adminForm', 'teacherForm', 'studentForm'];
           this.isActive = [false, false, false];
           this.isActive[id - 1] = true;
@@ -74,7 +74,7 @@ export default{
       }
     }, 
     created(){
-      this.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
+      this.captchaUrl = 'http://localhost:9090/common/captcha?time=' + new Date().getTime();
     }
 }
 </script>

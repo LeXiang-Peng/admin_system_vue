@@ -168,14 +168,14 @@ export default{
       }
     },        
     getCaptchaResult(callback){
-        this.request.get('utils/captcha/result').then(res=>{
+        this.request.get('common/captcha/result').then(res=>{
           callback(res);
       })
     },    
     resetCaptcha(){
       if(!this.isPost){
         this.isPost=true;
-        this.captchaUrl = 'http://localhost:9090/utils/captcha?time=' + new Date().getTime();
+        this.captchaUrl = 'http://localhost:9090/common/captcha?time=' + new Date().getTime();
         setTimeout(()=>{this.isPost=false},500);
       }
     }
