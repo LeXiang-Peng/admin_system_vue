@@ -1,19 +1,18 @@
 <template>
   <el-container style="height: 100%">
     <el-aside
-      :style="{width:sideWidth}"
+      :style="{width: $store.state.sideWidth}"
       class="asideBar"
     >
       <sideBar
-        :textShow="textShow"
-        :isCollapse="isCollapse"
-        role="role"
+        :textShow="$store.state.textShow"
+        :isCollapse="$store.state.isCollapse"
       ></sideBar>
     </el-aside>
 
     <el-container>
       <el-header class="headerBar">
-        <headerBar :collapseBtnClass="collapseBtnClass"></headerBar>
+        <headerBar :collapseBtnClass="$store.state.collapseBtnClass"></headerBar>
       </el-header>
       <el-main>
         <router-view></router-view>
@@ -43,13 +42,9 @@ import headerBar from "../components/home/headerBar.vue";
 export default {
   name: "HomeView",
   data() {
-    return {
-      collapseBtnClass: "el-icon-s-fold",
-      sideWidth: "200px",
-      isCollapse: false,
-      textShow: true,
-      role:"",
-    };
+    return{
+      
+    }
   },
   components: {
     sideBar,
@@ -57,25 +52,13 @@ export default {
   },
   methods: {
     collapse() {
-      this.isCollapse = !this.isCollapse;
-      if (this.isCollapse) {
-        this.sideWidth = "64px";
-        this.collapseBtnClass = "el-icon-s-unfold";
-        this.textShow = false;
-      } else {
-        this.sideWidth = "200px";
-        this.collapseBtnClass = "el-icon-s-fold";
-        this.textShow = true;
-      }
+      this.$store.commit("collapse");
     },
   },
   provide() {
     return {
       collapse: this.collapse,
     };
-  },
-  created(){
-    this.role = window.localStorage.getItem("role");
   }
 };
 </script>

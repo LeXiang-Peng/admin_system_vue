@@ -1,5 +1,6 @@
 <template>
   <div class="login_body_content">
+    <loginFormBar :isRemenber="ruleForm.isRemenber"></loginFormBar> 
     <el-form
       :model="ruleForm"
       status-icon
@@ -9,39 +10,20 @@
       class="demo-ruleForm"
     >
       <el-form-item>
-        <div class="bar">
-          <span
-            id="2"
-            :class="{hold:isActive[2]}"
-            @click="changeForm($event)"
-          >学生</span>
-          <span
-            id="0"
-            :class="{hold:isActive[0]}"
-            @click="changeForm($event)"
-          >管理员</span>
-          <span
-            id="1"
-            :class="{hold:isActive[1]}"
-            @click="changeForm($event)"
-          >教师</span>
-        </div>
-      </el-form-item>
-      <el-form-item>
         <span
           class="login_body_button"
-          @click="pressButton"
+          @click="pressIsRemenberButton"
         >
           <i
-            :class="buttonClass"
-            :style="{color:isColor}"
+            :class="this.$store.state.isRemenberButtonClass"
+            :style="{color:this.$store.state.isColor}"
           ></i>
           <span style="font-size:15px">记住密码</span>
         </span>
       </el-form-item>
       <el-form-item
         prop="id"
-        :label="label"
+        :label="this.$store.state.label"
       >
         <el-input
           type="text"
@@ -73,7 +55,7 @@
           v-model="ruleForm.captcha"
         ></el-input>
         <span @click="resetCaptcha"><el-image
-            :src="captchaUrl"
+            :src="this.$store.state.captchaUrl"
             style="width:100%;height:100%;"
           ></el-image></span>
       </el-form-item>
@@ -106,30 +88,6 @@
 .login_body_content {
   padding-top: 10%;
   padding-left: 3.5%;
-}
-.bar {
-  margin-top: -5%;
-  margin-bottom: 2%;
-}
-.bar span {
-  flex: 1;
-  min-width: 62px;
-  height: 30px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  display: inline-block;
-  line-height: 30px;
-  text-align: center;
-  background: #f2f3f9;
-  color: #666;
-  cursor: pointer;
-  margin-right: 15px;
-}
-.bar .hold {
-  background: #cce3f6;
-  border: 1px solid rgb(#7288fa);
-  color: rgb(#7288fa);
 }
 
 .login_body_icon {
@@ -168,11 +126,15 @@
 </style>
 
 <script>
+import loginFormBar from './loginFormBar.vue';
 export default {
   name: "loginPage",
+  components:{
+    loginFormBar
+  },
   data() {
     var checkId = (rule, value, callback) => {
-      switch(this.ruleForm.role){
+      switch(this.$store.state.role){
         case "student": this.verifyStudentId(rule,value,callback);break;
         case "admin": this.verifyAdminId(rule,value,callback);break;
         case "teacher":this.verifyTeacherId(rule,value,callback);break;
@@ -201,10 +163,8 @@ export default {
       }
     };
     return {
-      buttonClass: "el-icon-turn-off",
-      isColor: "grey",
       ruleForm: {
-        role: "student",
+        role: this.$store.state.role,
         id: "",
         password: "",
         captcha: "",
@@ -217,32 +177,9 @@ export default {
       },
       isPost: false,
       isTurned: false,
-      isActive: [false, false, true],
-      captchaUrl: "",
-      label: "学号",
     };
   },
   methods: {
-    changeForm(event) {
-      let id = event.currentTarget.id;
-      if (!this.isActive[id]) {
-        if (this.ruleForm.isRemenber) {
-          this.pressButton();
-        }
-        this.resetForm("ruleForm");
-        this.captchaUrl =
-          "http://localhost:9090/common/captcha?time=" + new Date().getTime();
-        this.isActive = [false, false, false];
-        this.isActive[id] = true;
-        switch(id){
-          case '0':this.ruleForm.role="admin",this.label="管理员ID";break;
-          case '1':this.ruleForm.role="teacher",this.label="教师ID";break;
-          case '2':this.ruleForm.role="student",this.label="学号";break;
-          default:break;
-        }
-
-      }
-    },
     submitForm(formName) {
       if (!this.isTurned) {
         this.isTurned = true;
@@ -263,22 +200,14 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
     },
-    pressButton() {
-      if (!this.ruleForm.isRemenber) {
-        this.ruleForm.isRemenber = true;
-        this.buttonClass = "el-icon-open";
-        this.isColor = "green";
-      } else {
-        this.ruleForm.isRemenber = false;
-        this.buttonClass = "el-icon-turn-off";
-        this.isColor = "grey";
-      }
+    pressIsRemenberButton() {
+      this.$store.commit("pressIsRemenberButton",this.ruleForm.isRemenber);
+      this.ruleForm.isRemenber = !this.ruleForm.isRemenber;
     },
     resetCaptcha() {
       if (!this.isPost) {
         this.isPost = true;
-        this.captchaUrl =
-          "http://localhost:9090/common/captcha?time=" + new Date().getTime();
+        this.$store.commit("changeCaptcha");
         setTimeout(() => {
           this.isPost = false;
         }, 500);
@@ -327,9 +256,16 @@ export default {
       }
     }
   },
-  created() {
-    this.captchaUrl =
-      "http://localhost:9090/common/captcha?time=" + new Date().getTime();
+  provide() {
+    return{
+      pressIsRemenberButton: this.pressIsRemenberButton,
+      resetForm: this.resetForm,
+    }
   },
+  watch:{
+    "$store.state.role"(){
+      this.ruleForm.role = this.$store.getters.getRole;
+    }
+  }
 };
 </script>

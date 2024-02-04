@@ -1,34 +1,28 @@
 <template>
-  <div class="login_header">
-    <div class="login_header_content">
-      <el-tooltip
-        class="item"
-        effect="dark"
-        content="验证码登录"
-        placement="top"
+  <div class="login_header_content">
+    <el-tooltip
+      class="item"
+      effect="dark"
+      content="验证码登录"
+      placement="top"
+    >
+      <span
+        @mouseover="iconChange"
+        @mouseout="iconChangeBack"
       >
-        <span
-          @mouseover="iconChange"
-          @mouseout="iconChangeBack"
-        >
-          由此打开
-          <i
-            :class="iconClass"
-            style="transform: scale(2);"
-          ></i>
-        </span>
-      </el-tooltip>
-    </div>
+        由此打开
+        <i
+          :class="iconClass"
+          style="transform: scale(2);"
+        ></i>
+      </span>
+    </el-tooltip>
   </div>
 </template>
 
 <style>
-.login_header {
-  height: 10%;
-  width: 100%;
-}
 .login_header_content {
-  height: 100%;
+  height: 10%;
   width: 30%;
   margin-left: 42%;
   padding-top: 4.5%;
