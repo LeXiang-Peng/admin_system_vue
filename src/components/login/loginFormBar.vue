@@ -58,19 +58,19 @@ export default {
     changeForm(event) {
       let id = event.currentTarget.id;
       if (!this.isActive[id]) {
-        if(this.isRemenber){this.pressIsRemenberButton();}
+        if(this.isRemember){this.pressIsRememberButton();}
         this.resetForm("ruleForm");
         this.isActive = [false, false, false];
         this.isActive[id] = true;
-        this.$store.commit("changeForm",id);
+        this.selectForm(id);
       }
     },
   },
   props:{
-    isRemenber:{
+    isRemember:{
       type:Boolean
     }
   },
-  inject:["pressIsRemenberButton","resetForm"]
+  inject:["pressIsRememberButton","resetForm","selectForm"]
 };
 </script>

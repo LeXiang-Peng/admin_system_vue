@@ -16,7 +16,7 @@
     <el-dropdown style="width: 70px;cursor: pointer;">
       <span>王小虎</span>
       <i
-        class="el-icon-arrow-down"
+        class="el-icon-s-tools"
         style="margin-left:5px"
       ></i>
       <el-dropdown-menu slot="dropdown">

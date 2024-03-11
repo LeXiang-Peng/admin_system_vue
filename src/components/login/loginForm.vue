@@ -1,6 +1,6 @@
 <template>
   <div class="login_body_content">
-    <loginFormBar :isRemenber="ruleForm.isRemenber"></loginFormBar> 
+    <loginFormBar :isRemember="ruleForm.isRemember"></loginFormBar>
     <el-form
       :model="ruleForm"
       status-icon
@@ -12,10 +12,10 @@
       <el-form-item>
         <span
           class="login_body_button"
-          @click="pressIsRemenberButton"
+          @click="pressIsRememberButton"
         >
           <i
-            :class="this.$store.state.isRemenberButtonClass"
+            :class="this.$store.state.isRememberButtonClass"
             :style="{color:this.$store.state.isColor}"
           ></i>
           <span style="font-size:15px">记住密码</span>
@@ -23,12 +23,11 @@
       </el-form-item>
       <el-form-item
         prop="id"
-        :label="this.$store.state.label"
+        :label=this.label
       >
         <el-input
-          type="text"
           autocomplete="off"
-          v-model="ruleForm.id"
+          v-model.number="ruleForm.id"
           style="width: 210px;"
         ></el-input>
       </el-form-item>
@@ -54,10 +53,10 @@
           style="width: 120px;"
           v-model="ruleForm.captcha"
         ></el-input>
-        <span @click="resetCaptcha"><el-image
-            :src="this.$store.state.captchaUrl"
+        <span @click="resetCaptcha"><img
+            :src="this.captchaUrl"
             style="width:100%;height:100%;"
-          ></el-image></span>
+          ></img></span>
       </el-form-item>
       <el-form-item>
         <el-button
@@ -126,19 +125,37 @@
 </style>
 
 <script>
-import loginFormBar from './loginFormBar.vue';
+import { login } from "@/utils/api";
+import loginFormBar from "./loginFormBar.vue";
 export default {
   name: "loginPage",
-  components:{
-    loginFormBar
+  components: {
+    loginFormBar,
   },
   data() {
     var checkId = (rule, value, callback) => {
-      switch(this.$store.state.role){
-        case "student": this.verifyStudentId(rule,value,callback);break;
-        case "admin": this.verifyAdminId(rule,value,callback);break;
-        case "teacher":this.verifyTeacherId(rule,value,callback);break;
-        default:break;
+      let msg = "";
+      switch (this.ruleForm.role) {
+        case "admin":
+          msg = "管理员ID";
+          break;
+        case "teacher":
+          msg = "教师ID";
+          break;
+        case "student":
+          msg = "学号";
+          break;
+      }
+      if (!value) {
+        return callback(new Error("请输入".concat(msg)));
+      } else {
+        setTimeout(() => {
+          if (!Number.isInteger(value)) {
+            callback(new Error("请输入正确的".concat(msg)));
+          } else {
+            callback();
+          }
+        }, 500);
       }
     };
     var validatePass = (rule, value, callback) => {
@@ -164,19 +181,22 @@ export default {
     };
     return {
       ruleForm: {
-        role: this.$store.state.role,
+        role: "student",
         id: "",
         password: "",
         captcha: "",
-        isRemenber: false,
+        isRemember: false,
       },
       rules: {
         id: [{ validator: checkId, trigger: "blur" }],
         password: [{ validator: validatePass, trigger: "blur" }],
         captcha: [{ validator: validateCaptcha, trigger: "blur" }],
       },
+      captchaUrl:
+        "http://localhost:9090/common/captcha?time=" + new Date().getTime(),
       isPost: false,
       isTurned: false,
+      label: "学号",
     };
   },
   methods: {
@@ -185,8 +205,7 @@ export default {
         this.isTurned = true;
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            localStorage.setItem("role", "student");
-            this.$router.push("/home", () => {});
+            this.login();
           } else {
             this.$message.error("请填写信息后提交");
             return false;
@@ -200,72 +219,50 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
     },
-    pressIsRemenberButton() {
-      this.$store.commit("pressIsRemenberButton",this.ruleForm.isRemenber);
-      this.ruleForm.isRemenber = !this.ruleForm.isRemenber;
+    pressIsRememberButton() {
+      this.$store.commit("pressIsRememberButton", this.ruleForm.isRemember);
+      this.ruleForm.isRemember = !this.ruleForm.isRemember;
     },
     resetCaptcha() {
       if (!this.isPost) {
         this.isPost = true;
-        this.$store.commit("changeCaptcha");
+        this.captchaUrl =
+          "http://localhost:9090/common/captcha?time=" + new Date().getTime();
         setTimeout(() => {
           this.isPost = false;
-        }, 500);
+        }, 350);
       }
     },
-    verifyStudentId(rule,value,callback){
-      if (!value) {
-        return callback(new Error("请输入学号"));
-      } else {
-        setTimeout(() => {
-          let idPattern = new RegExp("^\\d{8}$");
-          if (!idPattern.test(value)) {
-            callback(new Error("请输入正确学号"));
-          } else {
-            callback();
-          }
-        }, 500);
+    selectForm(id) {
+      switch (id) {
+        case "0":
+          (this.ruleForm.role = "admin"), (this.label = "管理员ID");
+          break;
+        case "1":
+          (this.ruleForm.role = "teacher"), (this.label = "教师ID");
+          break;
+        case "2":
+          (this.ruleForm.role = "student"), (this.label = "学号");
+          break;
+        default:
+          break;
       }
+      this.captchaUrl =
+        "http://localhost:9090/common/captcha?time=" + new Date().getTime();
     },
-    verifyAdminId(rule,value,callback){
-      if (!value) {
-        return callback(new Error("请输入管理员ID"));
-      } else {
-        setTimeout(() => {
-          let idPattern = new RegExp("[a-zA-Z0-9]{5,18}");
-          if (!idPattern.test(value)) {
-            callback(new Error("请输入正确管理员ID"));
-          } else {
-            callback();
-          }
-        }, 500);
-      }
+    async login() {
+      let res = await login(this.ruleForm);
+      //本地 vuex 存储
+      this.$store.commit('LOGIN', res.data.token);
+      this.$router.replace('/');
     },
-    verifyTeacherId(rule,value,callback){
-      if (!value) {
-        return callback(new Error("请输入教师ID"));
-      } else {
-        setTimeout(() => {
-          let idPattern = new RegExp("^\\d{8}$");
-          if (!idPattern.test(value)) {
-            callback(new Error("请输入正确教师ID"));
-          } else {
-            callback();
-          }
-        }, 500);
-      }
-    }
   },
   provide() {
-    return{
-      pressIsRemenberButton: this.pressIsRemenberButton,
+    return {
+      pressIsRememberButton: this.pressIsRememberButton,
       resetForm: this.resetForm,
-    }
+      selectForm: this.selectForm,
+    };
   },
-  watch:{
-    "$store.state.role"(){
-      this.ruleForm.role = this.$store.getters.getRole;
-    }
-  }
 };
 </script>
