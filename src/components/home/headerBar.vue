@@ -10,7 +10,7 @@
         separator="/"
         style="display: inline-block; margin-left: 10px;"
       >
-        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: 'home' }">首页</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <el-dropdown style="width: 70px;cursor: pointer;">

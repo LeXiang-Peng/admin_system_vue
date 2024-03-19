@@ -1,9 +1,8 @@
+import 'element-ui/lib/theme-chalk/index.css';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 import router from "./index";
-import store from "@/store";
-import 'element-ui/lib/theme-chalk/index.css'
-import NProgress from 'nprogress'
-import 'nprogress/nprogress.css'
-import { getMenu } from '../utils/api/index';
+import store from '@/store';
 
 NProgress.configure({
     easing: 'ease', // 动画方式
@@ -14,15 +13,20 @@ NProgress.configure({
 })
 
 
-
 router.beforeEach((to, from, next) => {
     NProgress.start();
+    //如果用户访问的登录页，直接放行
+    if (to.path === '/login') return next();
+    //从sessionStorage中获取到保存的token值
+    const token = store.getters.getToken;
+    //没有token，强制跳转到登录页
+    if (!token || token == "") return next('/login')
+    //默认页
+    if (to.fullPath == '/') next('/home');
     next();
 })
-
 
 router.afterEach(() => {
     // 在即将进入新的页面组件前，关闭掉进度条
     NProgress.done();
-    
 })

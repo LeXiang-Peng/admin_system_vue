@@ -1,6 +1,6 @@
 <template>
   <div class="login_body_content">
-    <loginFormBar :isRemember="ruleForm.isRemember"></loginFormBar>
+    <loginFormBar :isRemember="this.isRemember"></loginFormBar>
     <el-form
       :model="ruleForm"
       status-icon
@@ -127,6 +127,7 @@
 <script>
 import { login } from "@/utils/api";
 import loginFormBar from "./loginFormBar.vue";
+import { setIdCard, setLocalIdCard } from "@/utils/role";
 export default {
   name: "loginPage",
   components: {
@@ -185,7 +186,6 @@ export default {
         id: "",
         password: "",
         captcha: "",
-        isRemember: false,
       },
       rules: {
         id: [{ validator: checkId, trigger: "blur" }],
@@ -197,6 +197,7 @@ export default {
       isPost: false,
       isTurned: false,
       label: "学号",
+      isRemember: false,
     };
   },
   methods: {
@@ -220,8 +221,8 @@ export default {
       this.$refs[formName].resetFields();
     },
     pressIsRememberButton() {
-      this.$store.commit("pressIsRememberButton", this.ruleForm.isRemember);
-      this.ruleForm.isRemember = !this.ruleForm.isRemember;
+      this.$store.commit("pressIsRememberButton", this.isRemember);
+      this.isRemember = !this.isRemember;
     },
     resetCaptcha() {
       if (!this.isPost) {
@@ -251,10 +252,22 @@ export default {
         "http://localhost:9090/common/captcha?time=" + new Date().getTime();
     },
     async login() {
-      let res = await login(this.ruleForm);
-      //本地 vuex 存储
-      this.$store.commit('LOGIN', res.data.token);
-      this.$router.replace('/');
+      const res = await login(this.ruleForm);
+      if (res.code === 200) {
+        this.$message.success(res.msg);
+        //本地 vuex 存储
+        if (this.isRemember) {
+          this.$store.commit("setLocalToken", res.data.token);
+          setLocalIdCard(this.ruleForm.role);
+        }
+        this.$store.commit("setToken", res.data.token);
+        setIdCard(this.ruleForm.role);
+        this.$router.replace("/");
+      } else {
+        this.resetCaptcha();
+        this.$message.error(res.msg);
+        return false;
+      }
     },
   },
   provide() {
@@ -263,6 +276,6 @@ export default {
       resetForm: this.resetForm,
       selectForm: this.selectForm,
     };
-  },
+  }
 };
 </script>
