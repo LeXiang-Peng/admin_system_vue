@@ -10,13 +10,25 @@ export function login(ruleForm) {
 }
 
 export function getStudentList(queryParams, pageSize, pageNum) {
-    return request.post('/admin/studentList/' + pageSize + '/' + pageNum, queryParams);
+    return request.post('/admin/student/list/' + pageSize + '/' + pageNum, queryParams);
 }
 
-export function getOptionList(){
+export function getOptionList() {
     return request.get('/admin/options');
 }
 
-export function deleteOneStudent(id){
-    return request.delete();
+export function deleteOneStudent(id) {
+    return request.delete('/admin/student/delete/' + id);
+}
+
+export function resetStudentPassword(id) {
+    return request.get('/admin/student/resetPassword/' + id);
+}
+
+export function newOneStudent(postForm) {
+    return request.post('/admin/student/save', postForm);
+}
+
+export function updateOneStudent(postForm) {
+    return request.post('/admin/student/update', postForm);
 }
