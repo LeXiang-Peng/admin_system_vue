@@ -8,5 +8,6 @@ export default {
     sideWidth: "200px",
     textShow: true,
     menu: [],
-    token:""
+    token: "",
+    currentPath: "",
 }

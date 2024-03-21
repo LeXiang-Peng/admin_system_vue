@@ -19,6 +19,9 @@ const routes = [
         path: 'home',
         name: 'home',
         component: () => import('../components/maincontent/home'),
+        meta:{
+          name: '首页'
+        }
       },
       {
         path: '',
@@ -28,12 +31,18 @@ const routes = [
           {
             path: 'modifyInfo',
             name: 'modifyInfo',
-            component: () => import('../components/maincontent/infomanage/modifyInfo')
+            component: () => import('../components/maincontent/infomanage/modifyInfo'),
+            meta:{
+              name: '修改信息'
+            }
           },
           {
             path: 'modifyPassword',
             name: 'modifyPassword',
-            component: () => import('../components/maincontent/infomanage/modifyPassword')
+            component: () => import('../components/maincontent/infomanage/modifyPassword'),
+            meta:{
+              name: '修改密码'
+            }
           },
         ]
       },
@@ -45,12 +54,18 @@ const routes = [
           {
             path: 'manageTeacher',
             name: 'manageTeacher',
-            component: () => import('../components/maincontent/usermanage/manageTeacher')
+            component: () => import('../components/maincontent/usermanage/manageTeacher'),
+            meta:{
+              name: '教师管理'
+            }
           },
           {
             path: 'manageStudent',
             name: 'manageStudent',
-            component: () => import('../components/maincontent/usermanage/manageStudent')
+            component: () => import('../components/maincontent/usermanage/manageStudent'),
+            meta:{
+              name: '学生管理'
+            }
           },
         ]
       },
@@ -62,12 +77,18 @@ const routes = [
           {
             path: 'manageCourse',
             name: 'manageCourse',
-            component: () => import('../components/maincontent/academicmanage/manageCourse')
+            component: () => import('../components/maincontent/academicmanage/manageCourse'),
+            meta:{
+              name: '课程管理'
+            }
           },
           {
             path: 'manageDepartment',
             name: 'manageDepartment',
-            component: () => import('../components/maincontent/academicmanage/manageDepartment')
+            component: () => import('../components/maincontent/academicmanage/manageDepartment'),
+            meta:{
+              name: '院系管理'
+            }
           },
         ]
       },
@@ -80,17 +101,26 @@ const routes = [
           {
             path: 'adminList',
             name: 'authority',
-            component: () => import('../components/maincontent/authority/adminList')
+            component: () => import('../components/maincontent/authority/adminList'),
+            meta:{
+              name: '管理员列表'
+            }
           },
           {
             path: 'newAdmin',
             name: 'authority',
-            component: () => import('../components/maincontent/authority/newAdmin')
+            component: () => import('../components/maincontent/authority/newAdmin'),
+            meta:{
+              name: '新的管理员'
+            }
           },
           {
             path: 'revoke',
             name: 'authority',
-            component: () => import('../components/maincontent/authority/revoke')
+            component: () => import('../components/maincontent/authority/revoke'),
+            meta:{
+              name: '禁权列表'
+            }
           }
         ]
       },

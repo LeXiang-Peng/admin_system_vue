@@ -22,6 +22,7 @@ router.beforeEach((to, from, next) => {
     //没有token，强制跳转到登录页
     if (!token || token == "") return next('/login')
     //默认页
+    store.commit('setCurrentPath', to.meta.name);
     if (to.fullPath == '/') next('/home');
     next();
 })

@@ -166,7 +166,7 @@ export default {
         let passPattern = new RegExp("[a-zA-Z0-9!_$]{6,18}");
         setTimeout(() => {
           if (!passPattern.test(value)) {
-            callback(new Error("格式：数字或英文或!或_或$ , 长度：6-18"));
+            callback(new Error("格式错误，请重新输入"));
           } else {
             callback();
           }

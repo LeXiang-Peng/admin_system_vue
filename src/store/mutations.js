@@ -49,5 +49,9 @@ export default {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     state.token = '';
+  },
+  setCurrentPath(state, currentPath) {
+    state.currentPath = currentPath;
+    sessionStorage.setItem("currentPath", currentPath);
   }
 }

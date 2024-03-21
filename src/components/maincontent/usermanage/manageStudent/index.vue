@@ -61,7 +61,7 @@
       <el-button
         style="margin-left: 5px;"
         type="primary"
-        @click="searchStudents(queryParams, pageSize, pageNum);"
+        @click="searchStudents();"
       >搜索</el-button>
       <el-button
         style="margin-left: 5px;"
@@ -77,7 +77,10 @@
         <i class="el-icon-circle-plus-outline"></i>
         <span>新增</span>
       </el-button>
-      <el-button type="danger">
+      <el-button
+        type="danger"
+        @click="openBatchDeleteMode"
+      >
         <i class="el-icon-remove-outline"></i>
         <span>批量删除</span>
       </el-button>
@@ -85,17 +88,45 @@
         <i class="el-icon-bottom"></i>
         <span>导入</span>
       </el-button>
-      <el-button type="primary">
+      <el-button
+        type="primary"
+        @click="exportStudents"
+      >
         <i class="el-icon-top"></i>
         <span>导出</span>
       </el-button>
+      <div
+        v-if="batchDeleteVisible"
+        style="display: inline;margin-left: 580px;"
+      >
+        <el-button
+          type="primary"
+          @click="exitBatchDeleteMode()"
+        >取消</el-button>
+        <el-button
+          type="primary"
+          @click="toggleSelection()"
+        >重置选择</el-button>
+        <el-button
+          type="danger"
+          @click="openIdentityDialog()"
+        >确认</el-button>
+      </div>
     </div>
     <el-table
+      @selection-change="handleSelectionChange"
       size="small"
       :data="tableData"
+      ref="tableData"
       :header-cell-style="{background:'#eef1f6',color:'#606266'}"
       style="border-radius: 8px; box-shadow: 5px 5px 50px 50px rgba(179, 184, 182, 0.267);"
     >
+      <el-table-column
+        type="selection"
+        width="55"
+        v-if="batchDeleteVisible"
+      >
+      </el-table-column>
       <el-table-column
         prop="id"
         label="学号"
@@ -144,11 +175,24 @@
         align="center"
       >
         <template slot-scope="scope">
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认重置该学生的密码吗？"
+            @confirm="resetPassword(scope.row.id)"
+            style="margin-right: 5px;"
+          >
+            <el-button
+              type="warning"
+              slot="reference"
+            ><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
+          </el-popconfirm>
           <el-button
-            type="warning"
-            @click="resetPassword(scope.row.id)"
-          ><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
-          <el-button type="danger"><i class="el-icon-remove-outline"></i><span>删除</span></el-button>
+            type="danger"
+            @click="openIdentityDialog(scope.row.id)"
+          ><i class="el-icon-remove-outline"></i><span>删除</span></el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -235,6 +279,7 @@
           prop="clazz"
         >
           <el-select
+            clearable
             v-model="postForm.clazz"
             style="width: 200px; margin-left: 5px;"
             placeholder="请选择班级"
@@ -282,7 +327,62 @@
         >取 消</el-button>
         <el-button
           type="primary"
-          @click="newOneStudent"
+          @click="submitPostForm"
+        >提交 </el-button>
+      </span>
+    </el-dialog>
+    <el-dialog
+      title="身份验证"
+      :visible.sync="identityVisible"
+      width="440px"
+      center
+      @close="resetIdentityForm"
+    >
+      <el-form
+        :model="identityForm"
+        ref="identityForm"
+        :rules="identityrules"
+        label-width="80px"
+        style="margin-left: 35px;"
+        size="small"
+      >
+        <el-form-item
+          label="密码"
+          prop="password"
+          style="margin-left: -0.5px;"
+        >
+          <el-input
+            type="password"
+            v-model="identityForm.password"
+            autocomplete="off"
+            style="width: 200px;"
+          ></el-input>
+        </el-form-item>
+        <el-form-item
+          label="确认密码"
+          prop="password2"
+        >
+          <el-input
+            type="password"
+            v-model="identityForm.password2"
+            autocomplete="off"
+            style="width: 200px;"
+          ></el-input>
+
+        </el-form-item>
+      </el-form>
+      <span
+        slot="footer"
+        class="dialog-footer"
+        style="margin-left: -10px;"
+      >
+        <el-button
+          @click="identityVisible = false;"
+          style="margin-right: 10px;"
+        >取 消</el-button>
+        <el-button
+          type="primary"
+          @click="submitIdentityForm"
         >提交 </el-button>
       </span>
     </el-dialog>
@@ -296,10 +396,38 @@ import {
   getOptionList,
   newOneStudent,
   resetStudentPassword,
+  deleteStudents,
+  exportStudentList,
 } from "@/utils/api";
 export default {
   name: "manage",
   data() {
+    var validatePass = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("请输入密码"));
+      } else {
+        let passPattern = new RegExp("[a-zA-Z0-9!_$]{6,18}");
+        setTimeout(() => {
+          if (!passPattern.test(value)) {
+            callback(new Error("格式错误，请重新输入"));
+          } else {
+            if (this.identityForm.password2 !== "") {
+              this.$refs.identityForm.validateField("password2");
+            }
+            callback();
+          }
+        }, 500);
+      }
+    };
+    var validatePass2 = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("请再次输入密码"));
+      } else if (value !== this.identityForm.password) {
+        callback(new Error("两次输入密码不一致!"));
+      } else {
+        callback();
+      }
+    };
     var validateName = (rule, value, callback) => {
       if (!value) {
         callback(new Error("请输入学生名字"));
@@ -335,6 +463,13 @@ export default {
         professions: [],
       },
       centerDialogVisible: false,
+      identityVisible: false,
+      batchDeleteVisible: false,
+      identityForm: {
+        id: [],
+        password: "",
+        password2: "",
+      },
       postForm: {
         name: "",
         department: "",
@@ -344,8 +479,13 @@ export default {
       },
       rules: {
         name: [{ validator: validateName, trigger: "blur" }],
-        clazz: [{ validator: validateClazz, trigger: "blur" }],
+        clazz: [{ validator: validateClazz, trigger: "change" }],
       },
+      identityrules: {
+        password: [{ validator: validatePass, trigger: "blur" }],
+        password2: [{ validator: validatePass2, trigger: "blur" }],
+      },
+      selectedStudentList: [],
     };
   },
   methods: {
@@ -365,8 +505,13 @@ export default {
       }
       return res;
     },
-    async searchStudents(queryParams, pageSize, pageNum) {
-      const res = await this.getStudents(queryParams, pageSize, pageNum);
+    async searchStudents() {
+      this.pageNum = 1;
+      const res = await this.getStudents(
+        this.queryParams,
+        this.pageSize,
+        this.pageNum
+      );
       if (res.code === 200) {
         this.$message.success(res.msg);
       }
@@ -531,11 +676,80 @@ export default {
       const res = await newOneStudent(this.postForm);
       this.centerDialogVisible = false;
       if (res.code === 200) {
+        this.pageNum = 1;
         this.getStudents(null, this.pageSize, this.pageNum);
         this.$message.success(res.msg);
       } else {
         this.$message.error(res.msg);
       }
+    },
+    submitPostForm() {
+      this.$refs["postForm"].validate((valid) => {
+        if (valid) {
+          this.newOneStudent();
+        } else {
+          this.$message.error("请填写信息后提交");
+          return false;
+        }
+      });
+    },
+    resetIdentityForm() {
+      this.identityForm = {};
+      this.selectedStudentList = [];
+    },
+    openIdentityDialog(id) {
+      if (!id && this.selectedStudentList.length === 0) {
+        this.$message.error("请选择删除的数据！");
+        return;
+      }
+      this.identityVisible = true;
+      if (id && id !== "") this.identityForm = { id: [id] };
+      else {
+        this.identityForm.id = this.selectedStudentList.map((v) => v.id);
+      }
+    },
+    submitIdentityForm() {
+      this.$refs["identityForm"].validate((valid) => {
+        if (valid) {
+          this.deleteStudents(this.identityForm);
+        } else {
+          this.$message.error("请填写信息后提交");
+          return false;
+        }
+      });
+    },
+    async deleteStudents(identityForm) {
+      const res = await deleteStudents(identityForm);
+      if (res.code === 200) {
+        this.getStudents(this.queryParams, this.pageSize, this.pageNum);
+        this.identityVisible = false;
+        this.batchDeleteVisible = false;
+        this.$message.success(res.msg);
+      } else {
+        this.$message.error(res.msg);
+      }
+    },
+    openBatchDeleteMode() {
+      this.batchDeleteVisible = true;
+    },
+    exitBatchDeleteMode() {
+      this.batchDeleteVisible = false;
+      this.toggleSelection();
+    },
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach((row) => {
+          this.$refs.tableData.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.tableData.clearSelection();
+      }
+    },
+    handleSelectionChange(val) {
+      this.selectedStudentList = val;
+    },
+    exportStudents() {
+      exportStudentList();
     },
   },
   created() {

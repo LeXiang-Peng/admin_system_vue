@@ -10,18 +10,19 @@
         separator="/"
         style="display: inline-block; margin-left: 10px;"
       >
-        <el-breadcrumb-item :to="{ path: 'home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ currentPath }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
-    <el-dropdown style="width: 70px;cursor: pointer;">
+    <el-dropdown style="width: 100px;cursor: pointer;">
       <span>王小虎</span>
       <i
         class="el-icon-s-tools"
         style="margin-left:5px"
       ></i>
-      <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item>个人信息</el-dropdown-item>
-        <el-dropdown-item>退出</el-dropdown-item>
+      <el-dropdown-menu slot="dropdown" style="width: 90px; text-align: center;">
+        <el-dropdown-item style="font-size: 14px; padding: 5px 0;">个人信息</el-dropdown-item>
+        <el-dropdown-item style="font-size: 14px; padding: 5px 0;">退出</el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>
   </div>
@@ -36,6 +37,7 @@
 </style>
 
 <script>
+import store from '@/store';
 export default {
   name: "headerBar",
   inject: ["collapse"],
@@ -44,5 +46,12 @@ export default {
       type: String,
     },
   },
+  computed:{
+    currentPath:{
+      get(){
+        return store.getters.getCurrentPath;
+      }
+    }
+  }
 };
 </script>
