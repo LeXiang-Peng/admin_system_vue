@@ -1,5 +1,5 @@
 <template>
-    <div class="HomeContent">
+    <div>
       this is revoke
     </div>
   </template>

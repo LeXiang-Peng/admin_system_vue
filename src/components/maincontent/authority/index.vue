@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div  class="HomeContent">
     <el-menu
       default-active="authority/adminList"
       background-color="white"
@@ -8,7 +8,7 @@
       router
     >
       <el-menu-item index="authority/adminList">管理员列表</el-menu-item>
-      <el-menu-item index="authority/newAdmin">新的管理员</el-menu-item>
+      <el-menu-item index="authority/grantedTeachers">授权教师</el-menu-item>
       <el-menu-item index="authority/revoke">禁权列表</el-menu-item>
     </el-menu>
     <div class="line"></div>

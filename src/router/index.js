@@ -107,11 +107,11 @@ const routes = [
             }
           },
           {
-            path: 'newAdmin',
+            path: 'grantedTeachers',
             name: 'authority',
-            component: () => import('../components/maincontent/authority/newAdmin'),
+            component: () => import('../components/maincontent/authority/grantedTeachers'),
             meta:{
-              name: '新的管理员'
+              name: '授权教师'
             }
           },
           {

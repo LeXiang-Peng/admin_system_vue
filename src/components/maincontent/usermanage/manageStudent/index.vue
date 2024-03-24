@@ -2,10 +2,11 @@
   <div class="HomeContent">
     <div style="margin: 10px 0;margin-top:-5px;">
       <el-input
-        v-model="queryParams.id"
+        v-model.number="queryParams.id"
         style="width: 200px;"
         suffix-icon="el-icon-search"
         placeholder="请输入学号"
+        oninput ="value=value.replace(/[^\d]/g,'')"
       ></el-input>
       <el-input
         v-model="queryParams.name"
@@ -72,7 +73,7 @@
     <div style="margin: 10px 0;padding-bottom:5px;">
       <el-button
         type="primary"
-        @click="openDialog"
+        @click="openNewStudentDialog"
       >
         <i class="el-icon-circle-plus-outline"></i>
         <span>新增</span>
@@ -84,13 +85,23 @@
         <i class="el-icon-remove-outline"></i>
         <span>批量删除</span>
       </el-button>
-      <el-button type="primary">
-        <i class="el-icon-bottom"></i>
-        <span>导入</span>
-      </el-button>
+      <el-upload
+        ref="upload"
+        :on-success="importStudents"
+        style="display: inline-block; margin-left: 5px;margin-right: 5px;"
+        action="http://localhost:9090/admin/student/import"
+        :headers="headers"
+        :show-file-list="false"
+        accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+      >
+        <el-button type="primary">
+          <i class="el-icon-bottom"></i>
+          <span>导入</span>
+        </el-button>
+      </el-upload>
       <el-button
         type="primary"
-        @click="exportStudents"
+        @click="openExportDialog"
       >
         <i class="el-icon-top"></i>
         <span>导出</span>
@@ -213,7 +224,7 @@
       :visible.sync="centerDialogVisible"
       width="440px"
       center
-      @close="resetList"
+      @close="resetList();resetPostFormValidate();"
     >
       <el-form
         :model="postForm"
@@ -226,6 +237,7 @@
         <el-form-item
           label="学生姓名"
           prop="name"
+          class="is-required"
         >
           <el-input
             v-model="postForm.name"
@@ -277,6 +289,7 @@
           label="班级"
           style="margin-left: -3.5px;"
           prop="clazz"
+          class="is-required"
         >
           <el-select
             clearable
@@ -297,6 +310,7 @@
         <el-form-item
           label="性别"
           style="margin-left: -3.5px;"
+          class="is-required"
         >
           <el-select
             v-model="postForm.gender"
@@ -336,7 +350,7 @@
       :visible.sync="identityVisible"
       width="440px"
       center
-      @close="resetIdentityForm"
+      @close="resetIdentityFormValidate();resetIdentityForm();"
     >
       <el-form
         :model="identityForm"
@@ -386,6 +400,22 @@
         >提交 </el-button>
       </span>
     </el-dialog>
+    <el-dialog
+      :visible.sync="exportVisible"
+      title="选择导出内容"
+      width="250px"
+      center
+    >
+      <el-button
+        type="primary"
+        style="margin-left: 12px;"
+        @click="exportStudents"
+      >导出数据</el-button>
+      <el-button
+        type="primary"
+        @click="exportEmptyStudents"
+      >导出格式</el-button>
+    </el-dialog>
   </div>
 </template>
 
@@ -398,12 +428,13 @@ import {
   resetStudentPassword,
   deleteStudents,
   exportStudentList,
+  exportStudentEmptyList,
 } from "@/utils/api";
 export default {
   name: "manage",
   data() {
     var validatePass = (rule, value, callback) => {
-      if (value === "") {
+      if (!value) {
         callback(new Error("请输入密码"));
       } else {
         let passPattern = new RegExp("[a-zA-Z0-9!_$]{6,18}");
@@ -420,7 +451,7 @@ export default {
       }
     };
     var validatePass2 = (rule, value, callback) => {
-      if (value === "") {
+      if (!value) {
         callback(new Error("请再次输入密码"));
       } else if (value !== this.identityForm.password) {
         callback(new Error("两次输入密码不一致!"));
@@ -436,7 +467,7 @@ export default {
       }
     };
     var validateClazz = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         callback(new Error("请选择班级"));
       } else {
         callback();
@@ -486,6 +517,8 @@ export default {
         password2: [{ validator: validatePass2, trigger: "blur" }],
       },
       selectedStudentList: [],
+      headers: { token: this.$store.getters.getToken },
+      exportVisible: false,
     };
   },
   methods: {
@@ -502,6 +535,8 @@ export default {
       if (res.code === 200) {
         this.total = res.data.total;
         this.tableData = res.data.list;
+      }else{
+        this.$message.error(res.msg);
       }
       return res;
     },
@@ -514,6 +549,8 @@ export default {
       );
       if (res.code === 200) {
         this.$message.success(res.msg);
+      }else{
+        this.$message.error(res.msg);
       }
     },
     async getOptions() {
@@ -662,7 +699,7 @@ export default {
       this.queryParams = {};
       this.resetList();
     },
-    openDialog() {
+    openNewStudentDialog() {
       this.resetParams();
       this.centerDialogVisible = true;
       this.postForm = { gender: "男" };
@@ -677,6 +714,7 @@ export default {
       this.centerDialogVisible = false;
       if (res.code === 200) {
         this.pageNum = 1;
+        this.resetParams();
         this.getStudents(null, this.pageSize, this.pageNum);
         this.$message.success(res.msg);
       } else {
@@ -695,7 +733,6 @@ export default {
     },
     resetIdentityForm() {
       this.identityForm = {};
-      this.selectedStudentList = [];
     },
     openIdentityDialog(id) {
       if (!id && this.selectedStudentList.length === 0) {
@@ -721,6 +758,7 @@ export default {
     async deleteStudents(identityForm) {
       const res = await deleteStudents(identityForm);
       if (res.code === 200) {
+        this.selectedStudentList = [];
         this.getStudents(this.queryParams, this.pageSize, this.pageNum);
         this.identityVisible = false;
         this.batchDeleteVisible = false;
@@ -750,6 +788,31 @@ export default {
     },
     exportStudents() {
       exportStudentList();
+      this.exportVisible = false;
+    },
+    exportEmptyStudents() {
+      exportStudentEmptyList();
+      this.exportVisible = false;
+    },
+    openExportDialog() {
+      this.exportVisible = true;
+    },
+    importStudents(response, file, fileList) {
+      if (response.code === 200) {
+        this.pageNum = 1;
+        this.resetParams();
+        this.getStudents(null, this.pageSize, this.pageNum);
+        this.$message.success(response.msg);
+      } else {
+        this.$message.error(response.msg);
+      }
+      this.$refs.upload.clearFiles();
+    },
+    resetPostFormValidate() {
+      this.$refs.postForm.clearValidate();
+    },
+    resetIdentityFormValidate() {
+      this.$refs.identityForm.clearValidate();
     },
   },
   created() {
