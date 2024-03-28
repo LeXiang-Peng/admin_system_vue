@@ -1,14 +1,14 @@
 <template>
-  <div  class="HomeContent">
+  <div class="HomeContent">
     <el-menu
-      default-active="authority/adminList"
+      default-active="myCourse/courseTable"
       background-color="white"
       class="el-menu-demo"
       mode="horizontal"
       router
     >
-      <el-menu-item index="authority/adminList">管理员列表</el-menu-item>
-      <el-menu-item index="authority/grantedTeachers">授权教师</el-menu-item>
+      <el-menu-item index="myCourse/courseTable">我的课表</el-menu-item>
+      <el-menu-item index="myCourse/approvingCourse">申报课程</el-menu-item>
     </el-menu>
     <div class="line"></div>
     <el-main>
@@ -17,12 +17,11 @@
   </div>
 </template>
 
-
 <script>
 export default {
-  name: "authority",
+  name: "myCourse",
   created(){
-    this.$router.replace('authority/adminList');
+    this.$router.replace('myCourse/courseTable');
   }
 };
 </script>

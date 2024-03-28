@@ -53,5 +53,5 @@ export default {
   setCurrentPath(state, currentPath) {
     state.currentPath = currentPath;
     sessionStorage.setItem("currentPath", currentPath);
-  }
+  },
 }

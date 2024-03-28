@@ -71,7 +71,7 @@ export function deleteTeacherList(identityForm) {
     return request.post('/admin/teacher/delete', identityForm);
 }
 
-export function grant(id) {
+export function grantTeacher(id) {
     return request.get('/admin/teacher/grant/' + id);
 }
 
@@ -89,6 +89,86 @@ export function deleteAdminList(identityForm) {
 
 export function resetAdminPassword(id) {
     return request.get('/admin/resetPassword/' + id);
+}
+
+export function revokeAdminADay(id) {
+    return request.get('/admin/revoke/temporary/' + id);
+}
+
+export function revokeAdmin(id) {
+    return request.get('/admin/revoke/' + id);
+}
+
+export function grantAdmin(id) {
+    return request.get('/admin/grant/' + id);
+}
+
+export function privilegeEscalation(id) {
+    return request.get('/admin/grant/plus/' + id);
+}
+
+export function demotionRights(id) {
+    return request.get('/admin/demotion/' + id);
+}
+
+export function getPermission() {
+    return request.get('/admin/teacher/permission');
+}
+
+export function getGrantedTeachers(queryParams, pageSize, pageNum) {
+    return request.post('/admin/teacher/granted/list/' + pageSize + '/' + pageNum, queryParams);
+}
+
+export function revokeTeacher(id) {
+    return request.get('/admin/teacher/granted/revoke/' + id);
+}
+
+export function banTeacherADay(id) {
+    return request.get('/admin/teacher/granted/ban/temporary/' + id);
+}
+
+export function banTeacher(id) {
+    return request.get('/admin/teacher/granted/ban/' + id);
+}
+
+export function privilegeEscalation2(id) {
+    return request.get('/admin/teacher/granted/grant/plus/' + id);
+}
+
+export function getCourseList(queryParams, pageSize, pageNum) {
+    return request.post('/teacher/course/approving/' + pageSize + '/' + pageNum, queryParams);
+}
+
+export function declareOneRequiredCourse(postForm) {
+    return request.post('/teacher/course/declare', postForm);
+}
+
+export function cancelCourse(id) {
+    return request.get('/teacher/course/cancel/' + id);
+}
+
+export function editCourse(editForm) {
+    return request.post('/teacher/course/edit', editForm);
+}
+
+export function deleteCourseInfo(id = []) {
+    return request.post('/teacher//course/delete/info', id);
+}
+
+export function getPendingCourses(queryParams, pageSize, pageNum) {
+    return request.post('/admin/course/list/' + pageSize + '/' + pageNum, queryParams);
+}
+
+export function rejectCourse(id) {
+    return request.get('/admin/course/reject/' + id);
+}
+
+export function passCourse(postForm) {
+    return request.post('/admin/course/pass', postForm);
+}
+
+export function getCategory() {
+    return request.get('/teacher/category');
 }
 
 function windowOpen(url, fileName) {

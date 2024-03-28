@@ -5,8 +5,8 @@
         v-model.number="queryParams.id"
         style="width: 200px;"
         suffix-icon="el-icon-search"
-        placeholder="请输入学号"
-        oninput ="value=value.replace(/[^\d]/g,'')"
+        placeholder="请输入教师编号"
+        oninput="value=value.replace(/[^\d]/g,'')"
       ></el-input>
       <el-input
         v-model="queryParams.name"
@@ -105,37 +105,71 @@
         type="selection"
         width="55"
         v-if="batchDeleteVisible"
+        :selectable="checkSelect"
       >
       </el-table-column>
       <el-table-column
         prop="id"
         label="教师编号"
-        width="120px"
+        width="100px"
         align="center"
       >
       </el-table-column>
       <el-table-column
         prop="name"
         label="姓名"
-        width="220px"
+        width="180px"
         align="center"
       >
       </el-table-column>
       <el-table-column
         prop="department"
         label="院系"
-        width="250px"
+        width="220px"
         align="center"
       >
       </el-table-column>
       <el-table-column
         prop="gender"
         label="性别"
-        width="100px"
+        width="80px"
         align="center"
       >
       </el-table-column>
-
+      <el-table-column
+        prop="type"
+        label="授权详情"
+        width="200px"
+        align="center"
+      >
+        <template slot-scope="scope">
+          <el-tag
+            type="info"
+            effect="dark"
+            v-if="scope.row.type==0"
+          >未授权</el-tag>
+          <el-tag
+            type="success"
+            effect="dark"
+            v-if="scope.row.type==1"
+          >已授权</el-tag>
+          <el-tag
+            type="danger"
+            effect="dark"
+            v-if="scope.row.type==2"
+          >超管权限</el-tag>
+          <el-tag
+            type="warning"
+            effect="dark"
+            v-if="scope.row.type==3"
+          >禁权中</el-tag>
+          <el-tag
+            type="info"
+            effect="dark"
+            v-if="scope.row.type==4"
+          >永久禁权</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column
         label="操作"
         align="center"
@@ -146,33 +180,48 @@
             cancel-button-text='我再想想'
             icon="el-icon-info"
             icon-color="red"
-            title="确认给该教师授予管理权限吗？"
-            @confirm="grant(scope.row.id)"
-            style="margin-right: 5px;"
+            title="确认重置该教师的密码吗？"
+            @confirm="resetPassword(scope.row.id)"
+            style="margin-left: 5px;"
           >
-            <el-button
-              type="warning"
-              slot="reference"
-            ><i class="el-icon-magic-stick"></i><span>授权</span></el-button>
+            <el-button slot="reference"><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
           </el-popconfirm>
           <el-popconfirm
             confirm-button-text='确定'
             cancel-button-text='我再想想'
             icon="el-icon-info"
             icon-color="red"
-            title="确认重置该学生的密码吗？"
-            @confirm="resetPassword(scope.row.id)"
-            style="margin-right: 5px;"
+            title="确认给该教师授予管理权限吗？"
+            @confirm="grant(scope.row.id)"
+            style="margin-left: 5px;"
+            v-if="scope.row.type === 0&&(hasAuthenication()||hasPlusAuthenication())"
           >
             <el-button
               type="warning"
               slot="reference"
-            ><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
+            ><i class="el-icon-magic-stick"></i><span>授权</span></el-button>
           </el-popconfirm>
           <el-button
             type="danger"
             @click="openIdentityDialog(scope.row.id)"
+            style="margin-left: 5px;"
+            v-if="hasPlusAuthenication()||hasAuthenication()&&scope.row.type===1||scope.row.type !== 1&&scope.row.type !== 2"
           ><i class="el-icon-remove-outline"></i><span>删除</span></el-button>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认给该教师恢复权限吗？"
+            @confirm="grant(scope.row.id)"
+            style="margin-left: 5px;"
+            v-if="(scope.row.type === 3||scope.row.type === 4)&&hasPlusAuthenication()"
+          >
+            <el-button
+              type="success"
+              slot="reference"
+            ><i class="el-icon-remove-outline"></i><span>解除禁权</span></el-button>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -268,7 +317,7 @@
           >取 消</el-button>
           <el-button
             type="primary"
-            @click="newTeacher"
+            @click="commitPostForm()"
           >提交 </el-button>
         </span>
       </el-dialog>
@@ -356,7 +405,8 @@ import {
   exportTeacherList,
   deleteTeacherList,
   exportTeacherEmptyList,
-  grant,
+  grantTeacher,
+  getPermission,
 } from "@/utils/api";
 export default {
   name: "manageTeacher",
@@ -395,13 +445,14 @@ export default {
       }
     };
     var validateDepartment = (rule, value, callback) => {
-      if (value === "") {
+      if (!value) {
         callback(new Error("请选择院系"));
       } else {
         callback();
       }
     };
     return {
+      admin_type: "",
       tableData: [],
       total: 0,
       pageSize: 5,
@@ -452,7 +503,7 @@ export default {
       if (res.code === 200) {
         this.total = res.data.total;
         this.tableData = res.data.list;
-      }else{
+      } else {
         this.$message.error(res.msg);
       }
       return res;
@@ -466,7 +517,7 @@ export default {
       );
       if (res.code === 200) {
         this.$message.success(res.msg);
-      }else{
+      } else {
         this.$message.error(res.msg);
       }
     },
@@ -487,17 +538,18 @@ export default {
     },
     resetPostFormValidate() {
       this.$refs.postForm.clearValidate();
-      this.postForm = {gender:'男'};
+      this.postForm = { gender: "男" };
     },
     openNewTeacherDialog() {
       this.centerDialogVisible = true;
     },
     async newTeacher() {
       const res = await newOneTeacher(this.postForm);
-      this.centerDialogVisible = false;
       if (res.code === 200) {
+        this.centerDialogVisible = false;
         this.pageNum = 1;
-        this.getTeachers(this.queryParams, this.pageSize, this.pageNum);
+        this.resetParams();
+        this.getTeachers(null, this.pageSize, this.pageNum);
         this.$message.success(res.msg);
       } else {
         this.$message.error(res.msg);
@@ -506,6 +558,7 @@ export default {
     commitPostForm() {
       this.$refs["postForm"].validate((valid) => {
         if (valid) {
+          console.log(1);
           this.newTeacher();
         } else {
           this.$message.error("请填写信息后提交");
@@ -558,6 +611,7 @@ export default {
     submitIdentityForm() {
       this.$refs["identityForm"].validate((valid) => {
         if (valid) {
+          this.identityVisible = false;
           this.deleteTeachers();
         } else {
           this.$message.error("请填写信息后提交");
@@ -570,7 +624,6 @@ export default {
       if (res.code === 200) {
         this.selectedTeacherList = [];
         this.getTeachers(this.queryParams, this.pageSize, this.pageNum);
-        this.identityVisible = false;
         this.batchDeleteVisible = false;
         this.$message.success(res.msg);
       } else {
@@ -592,17 +645,47 @@ export default {
       this.$refs.upload.clearFiles();
     },
     async grant(id) {
-      const res = await grant(id);
+      const res = await grantTeacher(id);
       if (res.code === 200) {
+        this.getTeachers(this.queryParams, this.pageSize, this.pageNum);
         this.$message.success(res.msg);
       } else {
         this.$message.error(res.msg);
       }
     },
+    /**
+     * row：当前行数据
+     * index：当前第几位
+     */
+    checkSelect(row, index) {
+      let isChecked = true;
+      if (!this.hasPlusAuthenication() && row.type === 2) {
+        isChecked = false;
+      }
+      if (!this.hasAuthenication() && row.type === 1) {
+        isChecked = false;
+      }
+      return isChecked;
+    },
+    async getType() {
+      const res = await getPermission();
+      this.admin_type = res.data;
+    },
+    hasPlusAuthenication() {
+      if ("adminPlus" === this.admin_type) return true;
+      return false;
+    },
+    hasAuthenication() {
+      const plus = this.hasPlusAuthenication();
+      if (plus) return plus;
+      if ("admin+" === this.admin_type) return true;
+      return false;
+    },
   },
   created() {
     this.getTeachers(this.queryParams, this.pageSize, this.pageNum);
     this.getDpartments();
+    this.getType();
   },
 };
 </script>

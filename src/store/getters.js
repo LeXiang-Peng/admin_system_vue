@@ -12,5 +12,5 @@ export default {
     getCurrentPath(state) {
         if (!state.currentPath) state.currentPath = sessionStorage.getItem("currentPath");
         return state.currentPath;
-    }
+    },
 }

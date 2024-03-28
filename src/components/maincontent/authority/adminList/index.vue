@@ -14,6 +14,33 @@
         suffix-icon="el-icon-user"
         placeholder="请输入名字"
       ></el-input>
+      <el-select
+        clearable
+        v-model="queryParams.type"
+        style="width: 200px; margin-left: 5px;"
+        placeholder="请选择权限类别"
+      >
+        <el-option
+          :value="0"
+          label="普通管理员"
+          :key="0"
+        ></el-option>
+        <el-option
+          :value="1"
+          label="超级管理员"
+          :key="1"
+        ></el-option>
+        <el-option
+          :value="2"
+          label="禁权中"
+          :key="2"
+        ></el-option>
+        <el-option
+          :value="3"
+          label="永久禁权"
+          :key="3"
+        ></el-option>
+      </el-select>
       <el-button
         style="margin-left: 5px;"
         type="primary"
@@ -29,6 +56,8 @@
       <el-button
         type="primary"
         @click="openNewAdminDilog()"
+        v-if="hasPlusAuthenication()"
+        :key="1"
       >
         <i class="el-icon-circle-plus-outline"></i>
         <span>新增</span>
@@ -36,6 +65,8 @@
       <el-button
         type="danger"
         @click="openBatchDeleteMode()"
+        v-if="hasPlusAuthenication()"
+        :key="2"
       >
         <i class="el-icon-remove-outline"></i>
         <span>批量删除</span>
@@ -69,29 +100,58 @@
       <el-table-column
         type="selection"
         width="55"
-        v-if="batchDeleteVisible"
+        v-if="batchDeleteVisible && hasPlusAuthenication()"
       >
       </el-table-column>
       <el-table-column
         prop="id"
         label="管理员ID"
-        width="150px"
+        width="120px"
         align="center"
       >
       </el-table-column>
       <el-table-column
         prop="name"
         label="姓名"
-        width="220px"
+        width="180px"
         align="center"
       >
       </el-table-column>
       <el-table-column
         prop="gender"
         label="性别"
-        width="120px"
+        width="100px"
         align="center"
       >
+      </el-table-column>
+      <el-table-column
+        prop="type"
+        label="权限详情"
+        width="180px"
+        align="center"
+      >
+        <template slot-scope="scope">
+          <el-tag
+            type="success"
+            effect="dark"
+            v-if="scope.row.type==0"
+          >普通管理员</el-tag>
+          <el-tag
+            type="danger"
+            effect="dark"
+            v-if="scope.row.type==1"
+          >超级管理员</el-tag>
+          <el-tag
+            type="warning"
+            effect="dark"
+            v-if="scope.row.type==2"
+          >禁权中</el-tag>
+          <el-tag
+            type="info"
+            effect="dark"
+            v-if="scope.row.type==3"
+          >永久禁权</el-tag>
+        </template>
       </el-table-column>
 
       <el-table-column
@@ -104,19 +164,99 @@
             cancel-button-text='我再想想'
             icon="el-icon-info"
             icon-color="red"
-            title="确认重置该学生的密码吗？"
+            title="确认重置该管理员的密码吗？"
             @confirm="resetPassword(scope.row.id)"
-            style="margin-right: 5px;"
+            style="margin-left: 5px;"
           >
-            <el-button
-              type="warning"
-              slot="reference"
-            ><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
+            <el-button slot="reference"><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
           </el-popconfirm>
           <el-button
             type="danger"
             @click="openIdentityDialog(scope.row.id)"
+            v-if="hasPlusAuthenication()"
+            style="margin-left: 5px;"
+            :key="3"
           ><i class="el-icon-remove-outline"></i><span>删除</span></el-button>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认禁权该管理员一天吗？"
+            @confirm="revokeTemporary(scope.row.id)"
+            style="margin-left: 5px;"
+            v-if="scope.row.type !== 2 && scope.row.type !== 3&&hasPlusAuthenication()"
+            :key="4"
+          >
+            <el-button
+              type="warning"
+              slot="reference"
+            ><i class="el-icon-lock"></i><span>禁权一天</span></el-button>
+          </el-popconfirm>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认永久禁权该管理员吗？"
+            @confirm="revokePermanent(scope.row.id)"
+            style="margin-left: 5px;"
+            v-if="scope.row.type !== 3&&hasPlusAuthenication()"
+            :key="5"
+          >
+            <el-button
+              type="info"
+              slot="reference"
+            ><i class="el-icon-switch-button"></i><span>永久禁权</span></el-button>
+          </el-popconfirm>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认恢复该管理员的权限吗？"
+            @confirm="grant(scope.row.id)"
+            style="margin-left: 5px;"
+            v-if="(scope.row.type === 2 || scope.row.type === 3)&&hasPlusAuthenication()"
+            :key="7"
+          >
+            <el-button
+              type="success"
+              slot="reference"
+            ><i class="el-icon-remove-outline"></i><span>解除禁权</span></el-button>
+          </el-popconfirm>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认暂时提权该管理员吗？"
+            @confirm="grantPlus(scope.row.id)"
+            v-if="scope.row.type === 0&&hasPlusAuthenication()"
+            style="margin-left: 5px;"
+            :key="6"
+          >
+            <el-button
+              type="danger"
+              slot="reference"
+            ><i class="el-icon-time"></i><span>暂时提权</span></el-button>
+          </el-popconfirm>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认对该管理员进行降权吗？"
+            @confirm="demotionRight(scope.row.id)"
+            v-if="scope.row.type === 1&&hasPlusAuthenication()"
+            style="margin-left: 5px;"
+            :key="6"
+          >
+            <el-button
+              type="danger"
+              slot="reference"
+            ><i class="el-icon-coffee"></i><span>降权</span></el-button>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -260,6 +400,12 @@ import {
   newOneAdmin,
   deleteAdminList,
   resetAdminPassword,
+  revokeAdminADay,
+  revokeAdmin,
+  grantAdmin,
+  privilegeEscalation,
+  getPermission,
+  demotionRights,
 } from "@/utils/api";
 export default {
   name: "adminList",
@@ -298,6 +444,7 @@ export default {
       }
     };
     return {
+      admin_type: "",
       tableData: [],
       pageNum: 1,
       pageSize: 5,
@@ -305,6 +452,7 @@ export default {
       queryParams: {
         id: null,
         name: "",
+        type: "",
       },
       departmentList: [],
       selectedAdminList: [],
@@ -344,7 +492,7 @@ export default {
       if (res.code === 200) {
         this.total = res.data.total;
         this.tableData = res.data.list;
-      }else{
+      } else {
         this.$message.error(res.msg);
       }
       return res;
@@ -390,7 +538,8 @@ export default {
       this.centerDialogVisible = false;
       if (res.code === 200) {
         this.pageNum = 1;
-        this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+        this.resetParams();
+        this.getAdmins(null, this.pageSize, this.pageNum);
         this.$message.success(res.msg);
       } else {
         this.$message.error(res.msg);
@@ -432,7 +581,6 @@ export default {
       if (res.code === 200) {
         this.selectedAdminList = [];
         this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
-        this.identityVisible = false;
         this.batchDeleteVisible = false;
         this.$message.success(res.msg);
       } else {
@@ -442,6 +590,7 @@ export default {
     submitIdentityForm() {
       this.$refs["identityForm"].validate((valid) => {
         if (valid) {
+          this.identityVisible = false;
           this.deleteAdmins();
         } else {
           this.$message.error("请填写信息后提交");
@@ -460,9 +609,63 @@ export default {
         this.$message.error(res.msg);
       }
     },
+    async revokeTemporary(id) {
+      const res = await revokeAdminADay(id);
+      if (res.code === 200) {
+        this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+        this.$message.success(res.msg);
+      } else {
+        this.$message.error(res.msg);
+      }
+    },
+    async revokePermanent(id) {
+      const res = await revokeAdmin(id);
+      if (res.code === 200) {
+        this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+        this.$message.success(res.msg);
+      } else {
+        this.$message.error(res.msg);
+      }
+    },
+    async grant(id) {
+      const res = await grantAdmin(id);
+      if (res.code === 200) {
+        this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+        this.$message.success(res.msg);
+      } else {
+        this.$message.error(res.msg);
+      }
+    },
+    async grantPlus(id) {
+      const res = await privilegeEscalation(id);
+      if (res.code === 200) {
+        this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+        this.$message.success(res.msg);
+      } else {
+        this.$message.error(res.msg);
+      }
+    },
+    async getType() {
+      const res = await getPermission();
+      this.admin_type = res.data;
+    },
+    hasPlusAuthenication() {
+      if ("adminPlus" === this.admin_type) return true;
+      return false;
+    },
+    async demotionRight(id){
+      const res = await demotionRights(id);
+      if (res.code === 200) {
+        this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+        this.$message.success(res.msg);
+      } else {
+        this.$message.error(res.msg);
+      }
+    }
   },
   created() {
     this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
+    this.getType();
   },
 };
 </script>

@@ -6,7 +6,7 @@
         style="width: 200px;"
         suffix-icon="el-icon-search"
         placeholder="请输入学号"
-        oninput ="value=value.replace(/[^\d]/g,'')"
+        oninput="value=value.replace(/[^\d]/g,'')"
       ></el-input>
       <el-input
         v-model="queryParams.name"
@@ -180,7 +180,13 @@
         align="center"
       >
       </el-table-column>
-
+      <el-table-column
+        prop="grade"
+        label="学年"
+        width="150px"
+        align="center"
+      >
+      </el-table-column>
       <el-table-column
         label="操作"
         align="center"
@@ -195,10 +201,7 @@
             @confirm="resetPassword(scope.row.id)"
             style="margin-right: 5px;"
           >
-            <el-button
-              type="warning"
-              slot="reference"
-            ><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
+            <el-button slot="reference"><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
           </el-popconfirm>
           <el-button
             type="danger"
@@ -467,7 +470,7 @@ export default {
       }
     };
     var validateClazz = (rule, value, callback) => {
-      if (value === "") {
+      if (!value) {
         callback(new Error("请选择班级"));
       } else {
         callback();
@@ -535,7 +538,7 @@ export default {
       if (res.code === 200) {
         this.total = res.data.total;
         this.tableData = res.data.list;
-      }else{
+      } else {
         this.$message.error(res.msg);
       }
       return res;
@@ -549,7 +552,7 @@ export default {
       );
       if (res.code === 200) {
         this.$message.success(res.msg);
-      }else{
+      } else {
         this.$message.error(res.msg);
       }
     },
@@ -748,6 +751,7 @@ export default {
     submitIdentityForm() {
       this.$refs["identityForm"].validate((valid) => {
         if (valid) {
+          this.identityVisible = false;
           this.deleteStudents(this.identityForm);
         } else {
           this.$message.error("请填写信息后提交");
@@ -760,7 +764,6 @@ export default {
       if (res.code === 200) {
         this.selectedStudentList = [];
         this.getStudents(this.queryParams, this.pageSize, this.pageNum);
-        this.identityVisible = false;
         this.batchDeleteVisible = false;
         this.$message.success(res.msg);
       } else {
