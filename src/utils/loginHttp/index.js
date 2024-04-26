@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { url } from '../serverUrl';
 
 //login专用请求
 const http = axios.create({
-    baseURL: '/api',
+    baseURL: url,
     timeout: 5000
 })
 

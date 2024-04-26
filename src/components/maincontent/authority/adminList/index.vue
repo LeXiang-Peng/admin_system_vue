@@ -414,17 +414,7 @@ export default {
       if (!value) {
         callback(new Error("请输入密码"));
       } else {
-        let passPattern = new RegExp("[a-zA-Z0-9!_$]{6,18}");
-        setTimeout(() => {
-          if (!passPattern.test(value)) {
-            callback(new Error("格式错误，请重新输入"));
-          } else {
-            if (this.identityForm.password2 !== "") {
-              this.$refs.identityForm.validateField("password2");
-            }
-            callback();
-          }
-        }, 500);
+        callback();
       }
     };
     var validatePass2 = (rule, value, callback) => {
@@ -590,8 +580,17 @@ export default {
     submitIdentityForm() {
       this.$refs["identityForm"].validate((valid) => {
         if (valid) {
-          this.identityVisible = false;
-          this.deleteAdmins();
+          // 检查是否包含字母和数字
+          const hasLetter = /[a-zA-Z]/.test(this.identityForm.password);
+          const hasDigit = /\d/.test(this.identityForm.password);
+          // 检查长度
+          const isLengthValid = this.identityForm.password.length >= 6 && this.identityForm.password.length <= 18;
+          if (!hasLetter || !hasDigit || !isLengthValid) {
+            this.$message.error("密码错误，请重新输入");
+          } else {
+            this.identityVisible = false;
+            this.deleteAdmins();
+          }
         } else {
           this.$message.error("请填写信息后提交");
           return false;
@@ -653,7 +652,7 @@ export default {
       if ("adminPlus" === this.admin_type) return true;
       return false;
     },
-    async demotionRight(id){
+    async demotionRight(id) {
       const res = await demotionRights(id);
       if (res.code === 200) {
         this.getAdmins(this.queryParams, this.pageSize, this.pageNum);
@@ -661,7 +660,7 @@ export default {
       } else {
         this.$message.error(res.msg);
       }
-    }
+    },
   },
   created() {
     this.getAdmins(this.queryParams, this.pageSize, this.pageNum);

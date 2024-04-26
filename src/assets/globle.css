@@ -5,6 +5,7 @@
 }
 
 .HomeContent {
+    filter:(2px);
     height: 100%;
     width: 100%;
     background: rgba(227, 233, 231, 0.267);

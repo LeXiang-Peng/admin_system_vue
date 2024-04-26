@@ -1,5 +1,5 @@
 <template>
-  <div class="HomeContent">
+  <div style="filter:(2px);">
     <div style="margin: 10px 0;margin-top:10px;">
       <el-input
         v-model="queryParams.course"
@@ -65,20 +65,12 @@
       >重置</el-button>
     </div>
     <el-table
-      @selection-change="handleSelectionChange"
       size="small"
       :data="tableData"
       ref="tableData"
       :header-cell-style="{background:'#eef1f6',color:'#606266'}"
       style="border-radius: 8px; box-shadow: 5px 5px 50px 50px rgba(179, 184, 182, 0.267);margin-top: 20px;"
     >
-      <el-table-column
-        type="selection"
-        width="55"
-        v-if="batchDeleteVisible"
-        :selectable="checkSelect"
-      >
-      </el-table-column>
       <el-table-column
         prop="id"
         label="申报编号"
@@ -225,7 +217,7 @@
         </el-form-item>
         <el-form-item
           label="学分"
-          prop="hours"
+          prop="credits"
           class="is-required"
         >
           <el-input

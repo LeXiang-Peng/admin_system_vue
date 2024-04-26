@@ -153,6 +153,14 @@ const routes = [
               name: '申报课程'
             }
           },
+          {
+            path: 'record',
+            name: 'myCourse',
+            component: () => import('../components/maincontent/myCourse/courseRescheduling'),
+            meta: {
+              name: '调课记录'
+            }
+          },
         ]
       },
       {

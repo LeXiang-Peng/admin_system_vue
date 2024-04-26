@@ -48,10 +48,25 @@ export default {
     removeIdCard();
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
+    localStorage.removeItem('userName');
+    sessionStorage.removeItem('userName');
+    state.userName = '';
     state.token = '';
   },
   setCurrentPath(state, currentPath) {
     state.currentPath = currentPath;
     sessionStorage.setItem("currentPath", currentPath);
   },
+  setUserName(state, userName) {
+    state.userName = userName;
+    sessionStorage.setItem("userName", userName);
+    if (localStorage.getItem("userName")) localStorage.setItem("userName", userName);
+  },
+  setLocalUserName(state, userName) {
+    localStorage.setItem("userName", userName);
+  },
+  setAvatarUrl(state, avatar_url) {
+    state.avatar_url = avatar_url;
+    localStorage.setItem("avatar_url", avatar_url);
+  }
 }

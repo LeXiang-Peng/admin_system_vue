@@ -10,7 +10,6 @@ import VueCookies from "vue-cookies";
 import $  from 'jquery';
 import store from './store';
 
-
 Vue.prototype.jquery = $
 
 Vue.config.productionTip = false
@@ -26,3 +25,4 @@ new Vue({
   router,
   render: h => h(App)
 }).$mount('#app')
+

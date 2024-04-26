@@ -20,8 +20,8 @@
 <script>
 export default {
   name: "manageCourse",
-  created(){
-    this.$router.replace('manageCourse/scheduleCourse');
-  }
+  created() {
+    this.$router.replace("manageCourse/scheduleCourse");
+  },
 };
 </script>

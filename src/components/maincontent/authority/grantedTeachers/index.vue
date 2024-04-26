@@ -145,7 +145,7 @@
             type="success"
             effect="dark"
             v-if="scope.row.type==1"
-          >已授权</el-tag>
+          >普通管理员</el-tag>
           <el-tag
             type="danger"
             effect="dark"

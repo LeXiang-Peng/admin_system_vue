@@ -9,6 +9,7 @@
     >
       <el-menu-item index="myCourse/courseTable">我的课表</el-menu-item>
       <el-menu-item index="myCourse/approvingCourse">申报课程</el-menu-item>
+      <el-menu-item index="myCourse/record">调课记录</el-menu-item>
     </el-menu>
     <div class="line"></div>
     <el-main>

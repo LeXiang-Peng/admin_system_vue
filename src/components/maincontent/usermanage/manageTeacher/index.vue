@@ -58,7 +58,7 @@
         ref="upload"
         :on-success="importTeachers"
         style="display: inline-block; margin-left: 5px;margin-right: 5px;"
-        action="http://localhost:9090/admin/teacher/import"
+        action="http://47.96.157.155:9090/admin/teacher/import"
         :headers="headers"
         :show-file-list="false"
         accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
@@ -114,6 +114,13 @@
         width="100px"
         align="center"
       >
+        <template slot-scope="scope">
+          <el-input
+            v-if="scope.row.id === editId"
+            v-model="editForm.id"
+          ></el-input>
+          <span v-else>{{scope.row.id}}</span>
+        </template>
       </el-table-column>
       <el-table-column
         prop="name"
@@ -121,6 +128,13 @@
         width="180px"
         align="center"
       >
+        <template slot-scope="scope">
+          <el-input
+            v-if="scope.row.id === editId"
+            v-model="editForm.name"
+          ></el-input>
+          <span v-else>{{scope.row.name}}</span>
+        </template>
       </el-table-column>
       <el-table-column
         prop="department"
@@ -128,6 +142,21 @@
         width="220px"
         align="center"
       >
+        <template slot-scope="scope">
+          <el-select
+            clearable
+            v-if="scope.row.id === editId"
+            v-model="editForm.department"
+          >
+            <el-option
+              v-for="dep in departmentList"
+              :value="dep"
+              :label="dep"
+              :key="dep"
+            ></el-option>
+          </el-select>
+          <span v-else>{{scope.row.department}}</span>
+        </template>
       </el-table-column>
       <el-table-column
         prop="gender"
@@ -135,6 +164,20 @@
         width="80px"
         align="center"
       >
+        <template slot-scope="scope">
+          <el-select
+            v-if="scope.row.id === editId"
+            v-model="editForm.gender"
+          >
+            <el-option
+              v-for=" item in ['男','女']"
+              :value="item"
+              :key="item"
+              :label="item"
+            ></el-option>
+          </el-select>
+          <span v-else>{{scope.row.gender}}</span>
+        </template>
       </el-table-column>
       <el-table-column
         prop="type"
@@ -180,9 +223,46 @@
             cancel-button-text='我再想想'
             icon="el-icon-info"
             icon-color="red"
+            title="确认编辑该学生信息吗？"
+            @confirm="edit(scope.row)"
+            style="margin-right: 5px;"
+            v-if="!is_editable||is_editable&&scope.row.id!==editId"
+          >
+            <el-button
+              type="success"
+              slot="reference"
+            ><i class="el-icon-refresh"></i><span>编辑</span></el-button>
+          </el-popconfirm>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确认保存此次编辑吗？"
+            @confirm="saveInfo"
+            style="margin-right: 5px;"
+            v-if="is_editable&&scope.row.id === editId"
+          >
+            <el-button
+              type="success"
+              slot="reference"
+            ><i class="el-icon-refresh"></i><span>保存</span></el-button>
+          </el-popconfirm>
+          <el-button
+            type="info"
+            slot="reference"
+            @click="cancel()"
+            v-if="is_editable&&scope.row.id===editId"
+          ><i class="el-icon-refresh"></i><span>取消</span></el-button>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='我再想想'
+            icon="el-icon-info"
+            icon-color="red"
             title="确认重置该教师的密码吗？"
             @confirm="resetPassword(scope.row.id)"
             style="margin-left: 5px;"
+            v-if="!is_editable||is_editable&&scope.row.id!==editId"
           >
             <el-button slot="reference"><i class="el-icon-refresh"></i><span>重置密码</span></el-button>
           </el-popconfirm>
@@ -194,7 +274,7 @@
             title="确认给该教师授予管理权限吗？"
             @confirm="grant(scope.row.id)"
             style="margin-left: 5px;"
-            v-if="scope.row.type === 0&&(hasAuthenication()||hasPlusAuthenication())"
+            v-if="scope.row.type === 0&&(hasAuthenication()||hasPlusAuthenication())&&(!is_editable||is_editable&&scope.row.id!==editId)"
           >
             <el-button
               type="warning"
@@ -205,7 +285,7 @@
             type="danger"
             @click="openIdentityDialog(scope.row.id)"
             style="margin-left: 5px;"
-            v-if="hasPlusAuthenication()||hasAuthenication()&&scope.row.type===1||scope.row.type !== 1&&scope.row.type !== 2"
+            v-if="(hasPlusAuthenication()||hasAuthenication()&&scope.row.type===1||scope.row.type !== 1&&scope.row.type !== 2)&&(!is_editable||is_editable&&scope.row.id!==editId)"
           ><i class="el-icon-remove-outline"></i><span>删除</span></el-button>
           <el-popconfirm
             confirm-button-text='确定'
@@ -215,7 +295,7 @@
             title="确认给该教师恢复权限吗？"
             @confirm="grant(scope.row.id)"
             style="margin-left: 5px;"
-            v-if="(scope.row.type === 3||scope.row.type === 4)&&hasPlusAuthenication()"
+            v-if="(scope.row.type === 3||scope.row.type === 4)&&hasPlusAuthenication()&&(!is_editable||is_editable&&scope.row.id!==editId)"
           >
             <el-button
               type="success"
@@ -358,7 +438,6 @@
               autocomplete="off"
               style="width: 200px;"
             ></el-input>
-
           </el-form-item>
         </el-form>
         <span
@@ -397,6 +476,7 @@
 </template>
 
 <script>
+let set = new Set();
 import {
   getTeacherList,
   getDepartmentList,
@@ -407,6 +487,7 @@ import {
   exportTeacherEmptyList,
   grantTeacher,
   getPermission,
+  editTeacherInfo,
 } from "@/utils/api";
 export default {
   name: "manageTeacher",
@@ -415,17 +496,7 @@ export default {
       if (!value) {
         callback(new Error("请输入密码"));
       } else {
-        let passPattern = new RegExp("[a-zA-Z0-9!_$]{6,18}");
-        setTimeout(() => {
-          if (!passPattern.test(value)) {
-            callback(new Error("格式错误，请重新输入"));
-          } else {
-            if (this.identityForm.password2 !== "") {
-              this.$refs.identityForm.validateField("password2");
-            }
-            callback();
-          }
-        }, 500);
+        callback();
       }
     };
     var validatePass2 = (rule, value, callback) => {
@@ -487,6 +558,9 @@ export default {
         password2: [{ validator: validatePass2, trigger: "blur" }],
       },
       selectedTeacherList: [],
+      editForm: {},
+      editId: "",
+      is_editable: false,
     };
   },
   methods: {
@@ -611,8 +685,19 @@ export default {
     submitIdentityForm() {
       this.$refs["identityForm"].validate((valid) => {
         if (valid) {
-          this.identityVisible = false;
-          this.deleteTeachers();
+          // 检查是否包含字母和数字
+          const hasLetter = /[a-zA-Z]/.test(this.identityForm.password);
+          const hasDigit = /\d/.test(this.identityForm.password);
+          // 检查长度
+          const isLengthValid =
+            this.identityForm.password.length >= 6 &&
+            this.identityForm.password.length <= 18;
+          if (!hasLetter || !hasDigit || !isLengthValid) {
+            this.$message.error("密码错误，请重新输入");
+          } else {
+            this.identityVisible = false;
+            this.deleteTeachers();
+          }
         } else {
           this.$message.error("请填写信息后提交");
           return false;
@@ -680,6 +765,45 @@ export default {
       if (plus) return plus;
       if ("admin+" === this.admin_type) return true;
       return false;
+    },
+    edit(row) {
+      this.editId = row.id;
+      this.editForm = { ...row };
+      this.is_editable = true;
+      set.add(
+        this.editForm.id +
+          this.editForm.name +
+          this.editForm.gender +
+          this.editForm.department
+      );
+    },
+    cancel() {
+      this.is_editable = false;
+      this.editForm = {};
+      set.clear();
+      this.editId = "";
+    },
+    async saveInfo() {
+      set.add(
+        this.editForm.id +
+          this.editForm.name +
+          this.editForm.gender +
+          this.editForm.department
+      );
+      if (set.size === 1) {
+        this.$message.error("提交信息重复");
+        return;
+      }
+      const res = await editTeacherInfo(this.editId, this.editForm);
+      if (res.code === 200) {
+        this.pageNum = 1;
+        this.queryParams = {};
+        this.getTeachers(this.queryParams, this.pageSize, this.pageNum);
+        this.$message.success(res.msg);
+        this.cancel();
+      } else {
+        this.$message.error(res.msg);
+      }
     },
   },
   created() {

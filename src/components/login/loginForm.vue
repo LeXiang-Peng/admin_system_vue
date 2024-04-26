@@ -163,14 +163,7 @@ export default {
       if (value === "") {
         callback(new Error("请输入密码"));
       } else {
-        let passPattern = new RegExp("[a-zA-Z0-9!_$]{6,18}");
-        setTimeout(() => {
-          if (!passPattern.test(value)) {
-            callback(new Error("格式错误，请重新输入"));
-          } else {
-            callback();
-          }
-        }, 1000);
+        callback();
       }
     };
     var validateCaptcha = (rule, value, callback) => {
@@ -189,11 +182,11 @@ export default {
       },
       rules: {
         id: [{ validator: checkId, trigger: "blur" }],
-        password: [{ validator: validatePass, trigger: "blur" }],
+        password: [{ validator: validatePass, trigger: "submit" }],
         captcha: [{ validator: validateCaptcha, trigger: "blur" }],
       },
       captchaUrl:
-        "http://localhost:9090/common/captcha?time=" + new Date().getTime(),
+        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime(),
       isPost: false,
       isTurned: false,
       label: "学号",
@@ -202,20 +195,33 @@ export default {
   },
   methods: {
     submitForm(formName) {
-      if (!this.isTurned) {
-        this.isTurned = true;
-        this.$refs[formName].validate((valid) => {
-          if (valid) {
-            this.login();
-          } else {
-            this.$message.error("请填写信息后提交");
-            return false;
-          }
-        });
-        setTimeout(() => {
-          this.isTurned = false;
-        }, 1000);
+      if (this.isTurned) {
+        this.$message.warning("点太快了");
+        return;
       }
+      this.isTurned = true;
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          // 检查是否包含字母和数字
+          const hasLetter = /[a-zA-Z]/.test(this.ruleForm.password);
+          const hasDigit = /\d/.test(this.ruleForm.password);
+          // 检查长度
+          const isLengthValid =
+            this.ruleForm.password.length >= 6 &&
+            this.ruleForm.password.length <= 18;
+          if (!hasLetter || !hasDigit || !isLengthValid) {
+            this.$message.error("请重新登录");
+          } else {
+            this.login();
+          }
+        } else {
+          this.$message.error("请填写信息后提交");
+          return false;
+        }
+      });
+      setTimeout(() => {
+        this.isTurned = false;
+      }, 1000);
     },
     resetForm(formName) {
       this.$refs[formName].resetFields();
@@ -225,14 +231,16 @@ export default {
       this.isRemember = !this.isRemember;
     },
     resetCaptcha() {
-      if (!this.isPost) {
-        this.isPost = true;
-        this.captchaUrl =
-          "http://localhost:9090/common/captcha?time=" + new Date().getTime();
-        setTimeout(() => {
-          this.isPost = false;
-        }, 350);
+      if (this.isPost) {
+        this.$message.warning("换太快了，请稍后再试");
+        return;
       }
+      this.isPost = true;
+      this.captchaUrl =
+        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime();
+      setTimeout(() => {
+        this.isPost = false;
+      }, 350);
     },
     selectForm(id) {
       switch (id) {
@@ -249,7 +257,7 @@ export default {
           break;
       }
       this.captchaUrl =
-        "http://localhost:9090/common/captcha?time=" + new Date().getTime();
+        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime();
     },
     async login() {
       const res = await login(this.ruleForm);
@@ -258,9 +266,11 @@ export default {
         //本地 vuex 存储
         if (this.isRemember) {
           this.$store.commit("setLocalToken", res.data.token);
+          this.$store.commit("setLocalUserName", res.data.userName);
           setLocalIdCard(this.ruleForm.role);
         }
         this.$store.commit("setToken", res.data.token);
+        this.$store.commit("setUserName", res.data.userName);
         setIdCard(this.ruleForm.role);
         this.$router.replace("/");
       } else {
@@ -276,6 +286,6 @@ export default {
       resetForm: this.resetForm,
       selectForm: this.selectForm,
     };
-  }
+  },
 };
 </script>

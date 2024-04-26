@@ -1,5 +1,5 @@
 <template>
-  <div  class="HomeContent">
+  <div  class="HomeContent" style="filter:(2px);">
     <el-menu
       default-active="authority/adminList"
       background-color="white"
