@@ -21,6 +21,7 @@ router.beforeEach((to, from, next) => {
     const token = store.getters.getToken;
     //没有token，强制跳转到登录页
     if (!token || token == "") {
+        //有可能是从/login=>/login,所以需要提前关掉动画
         NProgress.done();
         return next('/login')
     };
