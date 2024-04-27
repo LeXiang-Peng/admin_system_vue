@@ -20,7 +20,10 @@ router.beforeEach((to, from, next) => {
     //从sessionStorage中获取到保存的token值
     const token = store.getters.getToken;
     //没有token，强制跳转到登录页
-    if (!token || token == "") return next('/login')
+    if (!token || token == "") {
+        NProgress.done();
+        return next('/login')
+    };
     //默认页
     store.commit('setCurrentPath', to.meta.name);
     if (to.fullPath == '/') next('/home');
