@@ -45,6 +45,7 @@ export default {
   },
   logout(state) {
     localStorage.clear();
+    sessionStorage.removeItem('token');
     state.token = '';
   },
   setCurrentPath(state, currentPath) {
