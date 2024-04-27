@@ -8,7 +8,7 @@ export function getMenu() {
 }
 
 export function login(ruleForm) {
-    return http.post('/common/login', ruleForm);
+    return http.post('/common/login?key=' + store.getters.getKey, ruleForm);
 }
 
 export function getStudentList(queryParams, pageSize, pageNum) {

@@ -22,8 +22,3 @@ export function getId() {
     if (!key || key === '') key = localStorage.getItem('id_card');
     return role_map.get(key);
 }
-
-export function removeIdCard() {
-    localStorage.removeItem('id_card');
-    sessionStorage.removeItem('id_card');
-}

@@ -12,7 +12,7 @@ const request = axios.create({
 // 比如统一加token，对请求参数统一加密
 request.interceptors.request.use(config => {
     config.headers['Content-Type'] = 'application/json;charset=utf-8';
-    const token = store.getters.getToken;
+    let token = store.getters.getToken;
     if (token) {
         config.headers['token'] = token;
     }

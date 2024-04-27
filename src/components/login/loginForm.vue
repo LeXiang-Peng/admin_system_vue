@@ -186,7 +186,7 @@ export default {
         captcha: [{ validator: validateCaptcha, trigger: "blur" }],
       },
       captchaUrl:
-        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime(),
+        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime() + "&key=" + this.$store.getters.getKey,
       isPost: false,
       isTurned: false,
       label: "学号",
@@ -237,7 +237,7 @@ export default {
       }
       this.isPost = true;
       this.captchaUrl =
-        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime();
+        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime() + "&key=" + this.$store.getters.getKey;
       setTimeout(() => {
         this.isPost = false;
       }, 350);
@@ -257,7 +257,7 @@ export default {
           break;
       }
       this.captchaUrl =
-        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime();
+        "http://47.96.157.155:9090/common/captcha?time=" + new Date().getTime() + "&key=" + this.$store.getters.getKey;
     },
     async login() {
       const res = await login(this.ruleForm);
@@ -267,10 +267,12 @@ export default {
         if (this.isRemember) {
           this.$store.commit("setLocalToken", res.data.token);
           this.$store.commit("setLocalUserName", res.data.userName);
+          this.$store.commit("setLocalAvatarUrl", res.data.avatar_url);
           setLocalIdCard(this.ruleForm.role);
         }
         this.$store.commit("setToken", res.data.token);
         this.$store.commit("setUserName", res.data.userName);
+        this.$store.commit("setAvatarUrl", res.data.avatar_url);
         setIdCard(this.ruleForm.role);
         this.$router.replace("/");
       } else {

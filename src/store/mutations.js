@@ -1,4 +1,3 @@
-import { removeIdCard } from "@/utils/role";
 export default {
   changeCaptcha(state) {
     state.captchaUrl = "http://localhost:9090/common/captcha?time=" + new Date().getTime();
@@ -45,12 +44,7 @@ export default {
     sessionStorage.setItem('token', token);
   },
   logout(state) {
-    removeIdCard();
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    localStorage.removeItem('userName');
-    sessionStorage.removeItem('userName');
-    state.userName = '';
+    localStorage.clear();
     state.token = '';
   },
   setCurrentPath(state, currentPath) {
@@ -67,6 +61,13 @@ export default {
   },
   setAvatarUrl(state, avatar_url) {
     state.avatar_url = avatar_url;
+    sessionStorage.setItem("avatar_url", avatar_url);
+  },
+  setLocalAvatarUrl(state, avatar_url) {
     localStorage.setItem("avatar_url", avatar_url);
+  },
+  setKey(state, key) {
+    sessionStorage.setItem("key", key);
+    state.key = key;
   }
 }

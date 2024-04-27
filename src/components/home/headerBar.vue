@@ -99,6 +99,6 @@ export default {
     info() {
       this.$router.replace("/modifyInfo");
     },
-  },
+  }
 };
 </script>

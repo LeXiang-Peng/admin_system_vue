@@ -19,11 +19,17 @@ export default {
         return state.userName;
     },
     getAvatarUrl(state) {
-        if (!state.avatar_url ||
-            state.avatar_url === "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png")
+        if (!state.avatar_url)
+            state.avatar_url = sessionStorage.getItem('avatar_url');
+        if (!state.avatar_url)
             state.avatar_url = localStorage.getItem('avatar_url');
         if (!state.avatar_url)
             state.avatar_url = "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
         return state.avatar_url;
+    },
+    getKey(state) {
+        if (!state.key)
+            state.key = sessionStorage.getItem('key');
+        return state.key;
     },
 }

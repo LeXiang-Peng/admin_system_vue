@@ -56,7 +56,17 @@ export default {
   components: {
     loginPage,
     loginHeader,
-  }
+  },
+  created() {
+    if (!this.$store.getters.getKey) {
+      this.$store.commit("setKey", Date.now());
+    }
+    sessionStorage.setItem("id_card", "");
+    sessionStorage.setItem("currentPath", "");
+    sessionStorage.setItem("userName", "");
+    sessionStorage.setItem("token", "");
+    sessionStorage.setItem("avatar_url", "");
+  },
 };
 </script>
   
