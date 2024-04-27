@@ -66,6 +66,7 @@ export default {
     sessionStorage.setItem("userName", "");
     sessionStorage.setItem("token", "");
     sessionStorage.setItem("avatar_url", "");
+    this.$store.commit("logout");
   },
 };
 </script>
