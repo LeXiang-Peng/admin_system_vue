@@ -63,8 +63,6 @@ export default {
     }
     sessionStorage.setItem("id_card", "");
     sessionStorage.setItem("currentPath", "");
-    sessionStorage.setItem("userName", "");
-    sessionStorage.setItem("avatar_url", "");
   },
 };
 </script>
