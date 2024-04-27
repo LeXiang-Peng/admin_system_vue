@@ -20,6 +20,7 @@
           action="http://47.96.157.155:9090/common/upload"
           :show-file-list="false"
           :on-success="handleAvatarSuccess"
+          :before-upload="beforeUpload"
           accept=".jpeg,.png,.jpg,.bmp,.gif"
           :headers="headers"
         >
@@ -176,6 +177,7 @@ export default {
         phone: "",
         IDNumber: "",
       },
+      times: 1,
     };
   },
   props: {
@@ -191,16 +193,34 @@ export default {
     },
   },
   methods: {
+    beforeUpload() {
+      if (this.times <= 5) {
+        return;
+      }
+      this.$message.warning("多次提交重复文件，请5min之后再试");
+      setTimeout(() => {
+        this.times = 1;
+      }, 300000);
+      return false;
+    },
     handleAvatarSuccess(response, file, fileList) {
       if (response.code === 200) {
         this.$store.commit("setAvatarUrl", response.data);
         this.$message.success(response.msg);
       } else {
+        this.times++;
         this.$message.error(response.msg);
       }
       this.$refs.upload.clearFiles();
     },
     openEditMode() {
+      set.add(
+        this.postForm.name +
+          this.postForm.email +
+          this.postForm.phone +
+          this.postForm.IDNumber +
+          this.$store.getters.getAvatarUrl
+      );
       this.isEdit = true;
     },
     quitEditMode() {
@@ -221,13 +241,6 @@ export default {
       }
       if (!res) return;
       if (res.code === 200) {
-        set.add(
-          this.postForm.name +
-            this.postForm.email +
-            this.postForm.phone +
-            this.postForm.IDNumber +
-            this.$store.getters.getAvatarUrl
-        );
         this.postForm.name = res.data.name;
         this.postForm.email = res.data.email;
         this.postForm.phone = res.data.phone;
